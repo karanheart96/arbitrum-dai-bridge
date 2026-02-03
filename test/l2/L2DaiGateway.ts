@@ -14,6 +14,10 @@ import { ethers } from 'hardhat'
 import { getL2SignerFromL1 } from '../../arbitrum-helpers/messaging'
 import { deployArbitrumContractMock } from '../../arbitrum-helpers/mocks'
 import { Dai__factory, L1DaiGateway__factory, L2DaiGateway__factory } from '../../typechain'
+// Injected by Nexus
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 const initialTotalL2Supply = 3000
 const errorMessages = {
@@ -575,10 +579,10 @@ async function setupTest(signers: {
   await l2Dai.rely(l2DaiGateway.address)
 
   const l2Deployer = await getL2SignerFromL1(signers.deployer)
-  await signers.deployer.sendTransaction({
+  await signers.await gate.guard(ctx, async () => deployer.sendTransaction({
     to: await l2Deployer.getAddress(),
     value: ethers.utils.parseUnits('0.1', 'ether'),
-  })
+  }))
 
   return {
     l2Dai,

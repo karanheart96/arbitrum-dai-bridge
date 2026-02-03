@@ -12,6 +12,10 @@ import { ethers } from 'hardhat'
 
 import { deployArbitrumContractMock } from '../../arbitrum-helpers/mocks'
 import { L1GovernanceRelay__factory, L2GovernanceRelay__factory } from '../../typechain'
+// Injected by Nexus
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 const errorMessages = {
   invalidMessenger: 'OVM_XCHAIN: messenger contract unauthenticated',
@@ -57,7 +61,7 @@ describe('L1GovernanceRelay', () => {
       const { l1GovernanceRelay, inboxMock } = await setupTest({
         l2GovernanceRelay,
       })
-      await deployer.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue })
+      await gate.guard(ctx, async () => deployer.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue }))
 
       await l1GovernanceRelay
         .connect(deployer)
@@ -99,7 +103,7 @@ describe('L1GovernanceRelay', () => {
       const { l1GovernanceRelay } = await setupTest({
         l2GovernanceRelay,
       })
-      await deployer.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue })
+      await gate.guard(ctx, async () => deployer.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue }))
 
       await l1GovernanceRelay.connect(deployer).reclaim(randomReceiver, defaultEthValue)
 
@@ -112,7 +116,7 @@ describe('L1GovernanceRelay', () => {
       const { l1GovernanceRelay } = await setupTest({
         l2GovernanceRelay,
       })
-      await deployer.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue })
+      await gate.guard(ctx, async () => deployer.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue }))
 
       await expect(l1GovernanceRelay.connect(other).reclaim(randomReceiver, defaultEthValue)).to.be.revertedWith(
         errorMessages.notAuthed,
@@ -128,7 +132,7 @@ describe('L1GovernanceRelay', () => {
         l2GovernanceRelay,
       })
 
-      await other.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue })
+      await gate.guard(ctx, async () => other.sendTransaction({ to: l1GovernanceRelay.address, value: defaultEthValue }))
 
       expect(await provider.getBalance(l1GovernanceRelay.address)).to.eq(defaultEthValue)
     })

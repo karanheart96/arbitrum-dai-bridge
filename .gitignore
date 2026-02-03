@@ -14,4 +14,4 @@ corpus/
 .*certora*
 .last_confs/
 coverage.json
-coverage
+coverage*.nexus.backup

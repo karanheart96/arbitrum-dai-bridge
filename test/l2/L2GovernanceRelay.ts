@@ -5,6 +5,10 @@ import { ethers } from 'hardhat'
 
 import { getL2SignerFromL1 } from '../../arbitrum-helpers/messaging'
 import { BadSpell__factory, Dai__factory, L2GovernanceRelay__factory, TestDaiMintSpell__factory } from '../../typechain'
+// Injected by Nexus
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 const errorMessages = {
   l1CounterpartMismatch: 'ONLY_COUNTERPART_GATEWAY',
@@ -120,10 +124,10 @@ async function setupTest(signers: {
   const l2daiMintSpell = await simpleDeploy<TestDaiMintSpell__factory>('TestDaiMintSpell', [])
 
   const l2GovernanceRelayImpersonator = await getL2SignerFromL1(signers.l1GovernanceRelay)
-  await signers.deployer.sendTransaction({
+  await signers.await gate.guard(ctx, async () => deployer.sendTransaction({
     to: await l2GovernanceRelayImpersonator.getAddress(),
     value: ethers.utils.parseUnits('0.1', 'ether'),
-  })
+  }))
 
   return { l2Dai, l2GovernanceRelay, l2daiMintSpell, l2GovernanceRelayImpersonator }
 }

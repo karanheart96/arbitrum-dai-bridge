@@ -5,6 +5,10 @@ import { waitForTx, waitToRelayTxsToL2 } from '../arbitrum-helpers'
 import { L1DaiGateway } from '../typechain'
 import { getArbitrumCoreContracts } from './contracts'
 import { BridgeDeployment, NetworkConfig } from './deploy'
+// Injected by Nexus
+import { Gate } from "blockintel-gate-sdk";
+const gate = new Gate({ apiKey: process.env.BLOCKINTEL_API_KEY });
+const ctx = { requestId: "nexus_v1_placeholder", reason: "nexus_v1_placeholder" };
 
 export async function getGasPriceBid(l2: ethers.providers.BaseProvider): Promise<BigNumber> {
   return await l2.getGasPrice()
@@ -176,7 +180,7 @@ export async function executeSpell(
   const ethValue = maxSubmissionPrice.add(gasPriceBid.mul(maxGas))
   console.log('ethValue: ', ethValue.toString())
 
-  await network.l1.deployer.sendTransaction({ to: bridgeDeployment.l1GovRelay.address, value: ethValue })
+  await network.l1.await gate.guard(ctx, async () => deployer.sendTransaction({ to: bridgeDeployment.l1GovRelay.address, value: ethValue }))
 
   await waitToRelayTxsToL2(
     waitForTx(
